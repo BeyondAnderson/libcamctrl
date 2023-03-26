@@ -11,7 +11,7 @@ class CameraUI:
         resolution_label.grid(row=0, column=0, sticky="w")
 
         self.resolution_var = tk.StringVar()
-        self.resolution_var.set("640x480")
+        self.resolution_var.set("1920x1080")
         resolution_options = ["640x480", "1280x720", "1920x1080"]
         resolution_dropdown = tk.OptionMenu(master, self.resolution_var, *resolution_options)
         resolution_dropdown.grid(row=0, column=1)
@@ -63,7 +63,7 @@ class CameraUI:
         name = self.name_entry.get()
 
         # Create the command to start recording
-        command = f"sudo libcamera-recorder -r {resolution} -f {framerate} -o {os.path.join(folder, name+format)} &"
+        command = f"sudo libcamera-vid -r {resolution} -f {framerate} -o {os.path.join(folder, name+format)} &"
 
         # Start recording
         os.system(command)
@@ -74,7 +74,7 @@ class CameraUI:
 
     def stop(self):
         # Create the command to stop recording
-        command = "sudo pkill libcamera-recorder"
+        command = "sudo pkill libcamera-vid"
 
         # Stop recording
         os.system(command)
