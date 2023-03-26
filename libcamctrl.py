@@ -1,87 +1,89 @@
 import tkinter as tk
-import subprocess
+import os
 
-class VideoRecorderUI(tk.Frame):
-    def __init__(self, master=None):
-        super().__init__(master)
+class CameraUI:
+    def __init__(self, master):
         self.master = master
-        self.pack()
-        self.create_widgets()
+        master.title("Camera UI")
 
-    def create_widgets(self):
-        # Resolution label
-        self.resolution_label = tk.Label(self, text="Resolution:")
-        self.resolution_label.grid(row=0, column=0)
+        # Create labels and dropdown menus for resolution, framerate, and output format
+        resolution_label = tk.Label(master, text="Resolution:")
+        resolution_label.grid(row=0, column=0, sticky="w")
 
-        # Resolution entry
-        self.resolution_entry = tk.Entry(self)
-        self.resolution_entry.grid(row=0, column=1)
+        self.resolution_var = tk.StringVar()
+        self.resolution_var.set("640x480")
+        resolution_options = ["640x480", "1280x720", "1920x1080"]
+        resolution_dropdown = tk.OptionMenu(master, self.resolution_var, *resolution_options)
+        resolution_dropdown.grid(row=0, column=1)
 
-        # Frame rate label
-        self.fps_label = tk.Label(self, text="Frame rate:")
-        self.fps_label.grid(row=1, column=0)
+        framerate_label = tk.Label(master, text="Framerate:")
+        framerate_label.grid(row=1, column=0, sticky="w")
 
-        # Frame rate entry
-        self.fps_entry = tk.Entry(self)
-        self.fps_entry.grid(row=1, column=1)
+        self.framerate_var = tk.StringVar()
+        self.framerate_var.set("30")
+        framerate_options = ["30", "60", "120"]
+        framerate_dropdown = tk.OptionMenu(master, self.framerate_var, *framerate_options)
+        framerate_dropdown.grid(row=1, column=1)
 
-        # Output format label
-        self.format_label = tk.Label(self, text="Output format:")
-        self.format_label.grid(row=2, column=0)
+        format_label = tk.Label(master, text="Output Format:")
+        format_label.grid(row=2, column=0, sticky="w")
 
-        # Output format entry
-        self.format_entry = tk.Entry(self)
-        self.format_entry.grid(row=2, column=1)
+        self.format_var = tk.StringVar()
+        self.format_var.set(".mp4")
+        format_options = [".mp4", ".avi", ".mkv"]
+        format_dropdown = tk.OptionMenu(master, self.format_var, *format_options)
+        format_dropdown.grid(row=2, column=1)
 
-        # File name label
-        self.filename_label = tk.Label(self, text="File name:")
-        self.filename_label.grid(row=3, column=0)
+        # Create labels and entry boxes for save folder and file name
+        folder_label = tk.Label(master, text="Save Folder:")
+        folder_label.grid(row=3, column=0, sticky="w")
 
-        # File name entry
-        self.filename_entry = tk.Entry(self)
-        self.filename_entry.grid(row=3, column=1)
+        self.folder_entry = tk.Entry(master)
+        self.folder_entry.grid(row=3, column=1)
 
-        # Save folder label
-        self.folder_label = tk.Label(self, text="Save folder:")
-        self.folder_label.grid(row=4, column=0)
+        name_label = tk.Label(master, text="File Name:")
+        name_label.grid(row=4, column=0, sticky="w")
 
-        # Save folder entry
-        self.folder_entry = tk.Entry(self)
-        self.folder_entry.grid(row=4, column=1)
+        self.name_entry = tk.Entry(master)
+        self.name_entry.grid(row=4, column=1)
 
-        # Start button
-        self.start_button = tk.Button(self, text="Start", command=self.start_recording)
+        # Create start and stop buttons
+        self.start_button = tk.Button(master, text="Start", command=self.start)
         self.start_button.grid(row=5, column=0)
 
-        # Stop button
-        self.stop_button = tk.Button(self, text="Stop", command=self.stop_recording, state=tk.DISABLED)
+        self.stop_button = tk.Button(master, text="Stop", command=self.stop, state="disabled")
         self.stop_button.grid(row=5, column=1)
 
-    def start_recording(self):
-        resolution = self.resolution_entry.get()
-        fps = self.fps_entry.get()
-        format = self.format_entry.get()
-        filename = self.filename_entry.get()
+    def start(self):
+        # Get the selected options and file name
+        resolution = self.resolution_var.get()
+        framerate = self.framerate_var.get()
+        format = self.format_var.get()
         folder = self.folder_entry.get()
+        name = self.name_entry.get()
 
-        # Build the command string
-        cmd = f"libcamera-vid -r {resolution} -f {fps} -o {folder}/{filename}.{format}"
+        # Create the command to start recording
+        command = f"sudo libcamera-recorder -r {resolution} -f {framerate} -o {os.path.join(folder, name+format)} &"
 
-        # Start the recording process
-        self.recording_process = subprocess.Popen(cmd, shell=True)
+        # Start recording
+        os.system(command)
 
-        # Disable the start button and enable the stop button
-        self.start_button.config(state=tk.DISABLED)
-        self.stop_button.config(state=tk.NORMAL)
+        # Disable start button and enable stop button
+        self.start_button.config(state="disabled")
+        self.stop_button.config(state="normal")
 
-    def stop_recording(self):
-        # Send SIGINT to the recording process to stop it
-        self.recording_process.send_signal(subprocess.signal.SIGINT)
+    def stop(self):
+        # Create the command to stop recording
+        command = "sudo pkill libcamera-recorder"
 
-        # Enable the start button and disable the stop button
-        self.start_button.config(state=tk.NORMAL)
-        self.stop_button.config(state=tk.DISABLED)
+        # Stop recording
+        os.system(command)
 
-root = tk.Tk()
-app = VideoRecorderUI(master=root)
-app.mainloop()
+        # Enable start button and disable stop button
+        self.start_button.config(state="normal")
+        self.stop_button.config(state="disabled")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = CameraUI(root)
+    root.mainloop()
