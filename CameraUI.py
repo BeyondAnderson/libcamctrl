@@ -16,9 +16,9 @@ class RecordUI(QWidget):
         self.resolution_label.setText("Select Resolution:")
         self.resolution_label.move(10, 10)
         self.resolution_dropdown = QComboBox(self)
-        self.resolution_dropdown.addItem("640x480")
-        self.resolution_dropdown.addItem("1280x720")
         self.resolution_dropdown.addItem("1920x1080")
+        self.resolution_dropdown.addItem("1280x720")
+        self.resolution_dropdown.addItem("640x480")
         self.resolution_dropdown.move(130, 10)
 
         # create framerate drop-down menu
@@ -40,7 +40,7 @@ class RecordUI(QWidget):
 
         # create save folder button
         self.save_folder_button = QPushButton(self)
-        self.save_folder_button.setText("Select Save Folder")
+        self.save_folder_button.setText("Save Folder")
         self.save_folder_button.move(10, 130)
         self.save_folder_button.clicked.connect(self.select_save_folder)
 
