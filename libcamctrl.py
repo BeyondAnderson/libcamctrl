@@ -1,6 +1,14 @@
 import tkinter as tk
 import os
 
+class CamController:
+    def __init__(self, master):
+        # Initialize instance variables
+        self.folder = None
+
+        # Create UI elements
+        ...
+
 class CameraUI:
     def __init__(self, master):
         self.master = master
@@ -61,8 +69,11 @@ class CameraUI:
         folder = self.folder_entry.get()
         name = self.name_entry.get()
 
+        # Get the selected folder
+        self.folder = self.folder_var.get()
+
         # Create the command to start recording
-        command = f"sudo libcamera-vid --width {width} --height {height} --framerate {framerate} -t 0 -o {os.path.join(folder, name+'.h264')} &"
+        command = f"sudo libcamera-vid --width {width} --height {height} --framerate {framerate} -t 0 -o {os.path.join(self.folder, name+'.h264')} &"
 
         # Start recording
         os.system(command)
@@ -72,19 +83,19 @@ class CameraUI:
         self.stop_button.config(state="normal")
 
     def stop(self):
-        # Create the command to stop recording
-        command = "sudo pkill libcamera-vid"
-
         # Stop recording
-        os.system(command)
+        os.system("sudo pkill -SIGINT libcamera-vid")
 
-        # Add command to convert H.264 file to MP4 format after recording finishes
-        convert_command = f"sudo ffmpeg -i {os.path.join(folder, name+'.h264')} -c:v copy -c:a copy {os.path.join(folder, name+'.mp4')}"
-        os.system(f"{convert_command} && rm {os.path.join(folder, name+'.h264')}")
+        # Wait for recording to stop
+        time.sleep(1)
 
-        # Enable start button and disable stop button
-        self.start_button.config(state="normal")
+        # Convert H.264 file to MP4 format
+        convert_command = f"sudo ffmpeg -i {os.path.join(self.folder, self.name_entry.get()+'.h264')} -c:v copy -c:a copy {os.path.join(self.folder, self.name_entry.get()+'.mp4')}"
+        os.system(f"{convert_command} && rm {os.path.join(self.folder, self.name_entry.get()+'.h264')}")
+
+        # Disable stop button and enable start button
         self.stop_button.config(state="disabled")
+        self.start_button.config(state="normal")
 
 if __name__ == "__main__":
     root = tk.Tk()
