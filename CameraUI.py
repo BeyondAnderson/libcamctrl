@@ -3,7 +3,6 @@ import subprocess
 import os
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QComboBox, QPushButton, QFileDialog
 
-
 class RecordUI(QWidget):
     def __init__(self):
         super().__init__()
