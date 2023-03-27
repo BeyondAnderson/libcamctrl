@@ -1,71 +1,91 @@
-import tkinter as tk
 import os
+import tkinter as tk
+from tkinter import ttk
+
+
+class CamController:
+    def __init__(self, master):
+        # Create UI elements
+        name_label = tk.Label(master, text="File name:")
+        name_label.grid(row=8, column=0, sticky="e")
+
+        self.name_entry = tk.Entry(master)
+        self.name_entry.grid(row=8, column=1)
+        self.name_entry.insert(0, "")
+
+        folder_label = tk.Label(master, text="Save folder:")
+        folder_label.grid(row=9, column=0, sticky="e")
+
+        self.folder_var = tk.StringVar(master)
+        self.folder_menu = tk.OptionMenu(master, self.folder_var, os.path.expanduser("~"))
+        self.folder_menu.grid(row=9, column=1, sticky="w")
+        self.folder_var.trace("w", self.update_folder)
+
+    def update_folder(self, *args):
+        folder = self.folder_var.get()
+        self.folder_menu['menu'].delete(0, 'end')
+
+        for item in os.listdir(folder):
+            if os.path.isdir(os.path.join(folder, item)):
+                self.folder_menu['menu'].add_command(label=item, command=tk._setit(self.folder_var, item))
+
 
 class CameraUI:
     def __init__(self, master):
+        # Create an instance of the CamController class
+        self.controller = CamController(master)
         self.master = master
         master.title("Camera UI")
-        self.controller = CamController(master)
-        self.folder = None
 
-        # Create labels and dropdown menus for resolution, framerate, and output format
+        # Create UI elements
         resolution_label = tk.Label(master, text="Resolution:")
-        resolution_label.grid(row=0, column=0, sticky="w")
+        resolution_label.grid(row=5, column=0, sticky="e")
 
         self.resolution_var = tk.StringVar()
         self.resolution_var.set("1920x1080")
         resolution_options = ["640x480", "1280x720", "1920x1080"]
         resolution_dropdown = tk.OptionMenu(master, self.resolution_var, *resolution_options)
-        resolution_dropdown.grid(row=0, column=1)
+        resolution_dropdown.grid(row=5, column=1)
 
         framerate_label = tk.Label(master, text="Framerate:")
-        framerate_label.grid(row=1, column=0, sticky="w")
+        framerate_label.grid(row=6, column=0, sticky="w")
 
         self.framerate_var = tk.StringVar()
         self.framerate_var.set("30")
-        framerate_options = ["30", "60", "120"]
+        framerate_options = ["10", "20", "30", "60", "120"]
         framerate_dropdown = tk.OptionMenu(master, self.framerate_var, *framerate_options)
-        framerate_dropdown.grid(row=1, column=1)
+        framerate_dropdown.grid(row=6, column=1)
 
         format_label = tk.Label(master, text="Output Format:")
-        format_label.grid(row=2, column=0, sticky="w")
+        format_label.grid(row=7, column=0, sticky="e")
 
-        self.format_var = tk.StringVar()
+        self.format_var = tk.StringVar(master)
         self.format_var.set(".mp4")
-        format_options = [".mp4"]
-        format_dropdown = tk.OptionMenu(master, self.format_var, *format_options)
-        format_dropdown.grid(row=2, column=1)
+        format_menu = tk.OptionMenu(master, self.format_var, ".mp4", ".h264")
+        format_menu.grid(row=7, column=1, sticky="w")
 
-        # Create labels and entry boxes for save folder and file name
-        folder_label = tk.Label(master, text="Save Folder:")
-        folder_label.grid(row=3, column=0, sticky="w")
+        name_label = tk.Label(master, text="File name:")
+        name_label.grid(row=8, column=0, sticky="e")
 
-        self.folder_entry = tk.Entry(master)
-        self.folder_entry.grid(row=3, column=1)
+        self.controller.name_entry.grid(row=8, column=1)
 
-        name_label = tk.Label(master, text="File Name:")
-        name_label.grid(row=4, column=0, sticky="w")
+        folder_label = tk.Label(master, text="Save folder:")
+        folder_label.grid(row=9, column=0, sticky="e")
 
-        self.name_entry = tk.Entry(master)
-        self.name_entry.grid(row=4, column=1)
+        self.controller.folder_menu = tk.OptionMenu(master, self.controller.folder_var, os.path.expanduser("~"))
+        self.controller.folder_menu.grid(row=9, column=1, sticky="w")
+        self.controller.folder_var.trace("w", self.controller.update_folder)
 
-        # Create start and stop buttons
-        self.start_button = tk.Button(master, text="Start", command=self.start)
-        self.start_button.grid(row=5, column=0)
+        start_button = tk.Button(master, text="Start", command=self.start_recording)
+        start_button.grid(row=10, column=0)
 
-        self.stop_button = tk.Button(master, text="Stop", command=self.stop, state="disabled")
-        self.stop_button.grid(row=5, column=1)
+        stop_button = tk.Button(master, text="Stop", command=self.stop_recording, state="disabled")
+        stop_button.grid(row=10, column=1)
 
-        # Add folder selection menu
-        folder_label = tk.Label(self.frame, text="Save folder:")
-        folder_label.grid(row=3, column=0, sticky="e")
+        self.status_label = tk.Label(master, text="Camera UI by LAVETT")
+        self.status_label.grid(row=11, column=0, columnspan=2)
 
-        self.folder_var = tk.StringVar(self.frame)
-        self.folder_var.set(os.path.expanduser("~"))
-        folder_menu = tk.OptionMenu(self.frame, self.folder_var, os.path.expanduser("~"), command=self.controller.update_folder)
-        folder_menu.grid(row=3, column=1, sticky="w")
-
-    def start(self):
+    def start_recording(self):
         # Get the selected options and file name
         width, height = self.resolution_var.get().split("x")
         framerate = self.framerate_var.get()
@@ -85,7 +105,7 @@ class CameraUI:
         self.start_button.config(state="disabled")
         self.stop_button.config(state="normal")
 
-    def stop(self):
+    def stop_recording(self):
         # Stop recording
         os.system("sudo pkill -SIGINT libcamera-vid")
 
