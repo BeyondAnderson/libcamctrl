@@ -78,7 +78,7 @@ class RecordUI(QWidget):
         filepath = os.path.join(self.save_folder_path, filename + ".h264")
 
         # start recording
-        cmd = "libcamera-vid --width {0} --height {1} --framerate {2} --output {3}".format(
+        cmd = "libcamera-vid -t 0 --width {0} --height {1} --framerate {2} --output {3}".format(
             resolution.split("x")[0], resolution.split("x")[1], framerate, filepath
         )
         self.process = subprocess.Popen(
