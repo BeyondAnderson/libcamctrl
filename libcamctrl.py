@@ -71,6 +71,7 @@ class CameraUI:
 
         folder_label = tk.Label(master, text="Save folder:")
         folder_label.grid(row=9, column=0, sticky="e")
+        self.folder_entry = tk.Entry(self)
 
         self.controller.folder_menu = tk.OptionMenu(master, self.controller.folder_var, os.path.expanduser("~"))
         self.controller.folder_menu.grid(row=9, column=1, sticky="w")
