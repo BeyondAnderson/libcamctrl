@@ -30,7 +30,7 @@ class CameraUI:
 
         self.format_var = tk.StringVar()
         self.format_var.set(".mp4")
-        format_options = [".mp4", ".avi", ".mkv"]
+        format_options = [".mp4"]
         format_dropdown = tk.OptionMenu(master, self.format_var, *format_options)
         format_dropdown.grid(row=2, column=1)
 
@@ -56,14 +56,13 @@ class CameraUI:
 
     def start(self):
         # Get the selected options and file name
-        resolution = self.resolution_var.get()
+        width, height = self.resolution_var.get().split("x")
         framerate = self.framerate_var.get()
-        format = self.format_var.get()
         folder = self.folder_entry.get()
         name = self.name_entry.get()
 
         # Create the command to start recording
-        command = f"sudo libcamera-vid -r {resolution} -f {framerate} -o {os.path.join(folder, name+format)} &"
+        command = f"sudo libcamera-vid --width {width} --height {height} --framerate {framerate} -t 0 -o {os.path.join(folder, name+'.h264')} &"
 
         # Start recording
         os.system(command)
@@ -78,6 +77,10 @@ class CameraUI:
 
         # Stop recording
         os.system(command)
+
+        # Add command to convert H.264 file to MP4 format after recording finishes
+        convert_command = f"sudo ffmpeg -i {os.path.join(folder, name+'.h264')} -c:v copy -c:a copy {os.path.join(folder, name+'.mp4')}"
+        os.system(f"{convert_command} && rm {os.path.join(folder, name+'.h264')}")
 
         # Enable start button and disable stop button
         self.start_button.config(state="normal")
