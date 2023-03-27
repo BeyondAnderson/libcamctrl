@@ -1,18 +1,12 @@
 import tkinter as tk
 import os
 
-class CamController:
-    def __init__(self, master):
-        # Initialize instance variables
-        self.folder = None
-
-        # Create UI elements
-        ...
-
 class CameraUI:
     def __init__(self, master):
         self.master = master
         master.title("Camera UI")
+        self.controller = CamController(master)
+        self.folder = None
 
         # Create labels and dropdown menus for resolution, framerate, and output format
         resolution_label = tk.Label(master, text="Resolution:")
@@ -61,6 +55,15 @@ class CameraUI:
 
         self.stop_button = tk.Button(master, text="Stop", command=self.stop, state="disabled")
         self.stop_button.grid(row=5, column=1)
+
+        # Add folder selection menu
+        folder_label = tk.Label(self.frame, text="Save folder:")
+        folder_label.grid(row=3, column=0, sticky="e")
+
+        self.folder_var = tk.StringVar(self.frame)
+        self.folder_var.set(os.path.expanduser("~"))
+        folder_menu = tk.OptionMenu(self.frame, self.folder_var, os.path.expanduser("~"), command=self.controller.update_folder)
+        folder_menu.grid(row=3, column=1, sticky="w")
 
     def start(self):
         # Get the selected options and file name
