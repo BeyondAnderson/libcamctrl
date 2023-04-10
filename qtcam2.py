@@ -1,6 +1,7 @@
 import sys
 import subprocess
 import cv2
+import libcamera
 import numpy as np
 import threading
 from time import sleep
@@ -129,11 +130,44 @@ class MainWindow(QMainWindow):
             
     def preview_button_clicked(self, checked):
         if checked == True:
+            # Create a libcamera pipeline and start capturing frames
+            pipeline = libcamera.Pipeline()
+            pipeline.start()
+            
+            # Get the first camera in the system
+            camera = pipeline.camera
+            
+            # Set the camera configuration to a reasonable default
+            config = camera.generateConfiguration({})
+            
+            # Seet the configuration and start capturing frames
+            camera.configurate(config)
+            camera.start()
+            
+            # Create a Qt timer to periodically update the labels pixmap with new frames
+            timer = Qtimer(self)
+            timer.timeout,connect(lambda: self.update_preview(camera))
+            
+            # Start the timer and update the label once to show the first frame
+            timer.start(33)
+            self.update_preview(camera)
+        
             self.camera_preview_label.show()
             self.preview_button.setText("Close preview")
         elif checked == False:
             self.camera_preview_label.hide()
             self.preview_button.setText("Open preview")
+            
+    def update_preview(self, camera):
+        # Get the latest frame from the camera
+        frame = camera.getframe()
+        
+        # Convert the image to a QImage
+        image = QImage(frame.buffer, frame.width, frame.height, QImage.Format_RGB888)
+        
+        # Create a QPixmap from the QImage and set it as the preview's pixmap
+        pixmap = QPixmap.fromImage(image)
+        self.camera_preview_label.setPixmap(pixmap)
             
     def start_camera(self):
         # Start the camera thread
