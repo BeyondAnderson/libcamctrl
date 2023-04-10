@@ -5,32 +5,25 @@ import numpy as np
 import threading
 from time import sleep
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QMainWindow, QPushButton, QLabel, QComboBox, QLineEdit, QFileDialog
-from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtCore import QSize, Qt, pyqtSignal, QThread
 from PyQt5.QtGui import QImage, QPixmap
 
 # Create a QWidget for the camera preview.
 class Videothread(threading.Thread):
-    def __init__(self, preview_label):
-        threading.Thread.__init__(self)
-        self.preview_label = preview_label
-        self.cap = cv2.videoCapture(0)
-        self.running = True
-        
+    change_pixmap_signal = pyqtSignal(np.ndarray)
+    
     def run(self):
-        while self.running:
-            ret, frame = self.cap.read()
+        # Initialize the camera capture
+        cap = cv2.VideoCapture(0)
+        while True:
+            ret, cv_img = cap.read()
             if ret:
-                frame = c2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                frame = np.rot90(frame)
-                height, width, _ = frame.shape
-                img = QImage(frame.data, width, height, QImage.Format_RGB888)
-                pixmap = QPixmap.fromImage(img)
-                self.preview_label.setPixmap(pixmap)
-                sleep(0.03)
-                
-    def stop(self):
-        self.running = False
-        self.cap.release()
+                # Emit the camera preview frames to the MainWindow instance
+                self.change_pixmap_signal.emit(cv_img)
+            # Sleep for a short period to reduce the CPU usage
+            time.sleep(0.01)
+        # Release the camera capture
+        cap.release()
 
 # Subclss QMainWindow to customize your application's main window.
 class MainWindow(QMainWindow):
@@ -113,6 +106,13 @@ class MainWindow(QMainWindow):
         
         self.preview_button.clicked.connect(self.preview_button_clicked)
         self.preview_button.setChecked(self.preview_button_checked)
+        
+        # Create a QLabel widget for the camera preview
+        self.camera_preview_label = QLabel('Preview', self)
+        self.camera_preview_label.move(370, 10)
+        self.camera_preview_label.resize(480,360)
+#        self.camera_preview_label.setScaledContents(True)
+        self.camera_preview_label.hide() # Hide the label initially
                 
         # Create Start/Stop button
         self.start_stop_button = QPushButton(self)
@@ -148,9 +148,22 @@ class MainWindow(QMainWindow):
             
     def preview_button_clicked(self, checked):
         if checked == True:
+            self.camera_preview_label.show()
             self.preview_button.setText("Close preview")
         elif checked == False:
+            self.camera_preview_label.hide()
             self.preview_button.setText("Open preview")
+            
+    def start_camera(self):
+        # Start the camera thread
+        self.camera_thread = VideoThread()
+        self.camera_thread.change_pixmap_signal.connect(self.show_frame)
+        self.camera_thread.start()
+        
+    def show_frame(self, cv_img):
+        # Convert the cv_img to a QPixmap and set it on the camera preview label
+        qt_img = self.convert_cv_qt(cv_img)
+        self.camera_preview_label.setPixmap(qt_img)
             
 app = QApplication(sys.argv)
 
