@@ -8,24 +8,6 @@ from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QMainWindow, QPu
 from PyQt5.QtCore import QSize, Qt, pyqtSignal, QThread
 from PyQt5.QtGui import QImage, QPixmap
 
-# Create a QWidget for the camera preview.
-class Videothread(threading.Thread):
-    change_pixmap_signal = pyqtSignal(np.ndarray)
-    
-    def run(self):
-        # Initialize the camera capture
-        cap = cv2.VideoCapture(0)
-        while True:
-            ret, cv_img = cap.read()
-            if ret:
-                # Emit the camera preview frames to the MainWindow instance
-                self.change_pixmap_signal.emit(cv_img)
-            # Sleep for a short period to reduce the CPU usage
-            time.sleep(0.01)
-        # Release the camera capture
-        cap.release()
-
-# Subclss QMainWindow to customize your application's main window.
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -111,7 +93,6 @@ class MainWindow(QMainWindow):
         self.camera_preview_label = QLabel('Preview', self)
         self.camera_preview_label.move(370, 10)
         self.camera_preview_label.resize(480,360)
-#        self.camera_preview_label.setScaledContents(True)
         self.camera_preview_label.hide() # Hide the label initially
                 
         # Create Start/Stop button
